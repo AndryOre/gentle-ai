@@ -445,6 +445,7 @@ func TestNegotiatedStatusAcceptsCorrectionSubsetDigest(t *testing.T) {
 	}, &output); err != nil {
 		t.Fatalf("status rejected a correction path restored exactly to base: %v\n%s", err, output.String())
 	}
+	status = ReviewTargetStatusResult{}
 	decodeStrictReviewJSON(t, output.Bytes(), &status)
 	if status.ValidationRequest == nil ||
 		!slices.Equal(status.ValidationRequest.CorrectionPaths, []string{"corrected.go"}) ||
