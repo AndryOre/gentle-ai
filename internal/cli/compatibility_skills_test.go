@@ -68,6 +68,9 @@ func TestCompatibilitySkillsRefreshRemovesLegacySharedSkillMarker(t *testing.T) 
 	skillsDir := filepath.Join(home, ".agents", "skills")
 	legacyMarker := filepath.Join(skillsDir, "_shared", "SKILL.md")
 	writeStale(t, legacyMarker)
+	if err := os.Truncate(legacyMarker, 17<<20); err != nil {
+		t.Fatal(err)
+	}
 
 	var changed []string
 	step := compatibilitySkillsRefreshStep{

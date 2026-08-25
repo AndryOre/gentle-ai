@@ -141,7 +141,7 @@ func (w *unixCompatibilityDirectoryWriter) Remove(path string) (bool, error) {
 	}
 
 	name := parts[len(parts)-1]
-	_, exists, err := readPhysicalCompatibilityFile(dirFD, name)
+	exists, err := physicalCompatibilityFileExists(dirFD, name)
 	if err != nil {
 		return false, err
 	}
@@ -197,6 +197,21 @@ func (w *unixCompatibilityDirectoryWriter) openParent(parts []string) (int, erro
 		currentFD = nextFD
 	}
 	return currentFD, nil
+}
+
+func physicalCompatibilityFileExists(dirFD int, name string) (bool, error) {
+	var stat unix.Stat_t
+	if err := unix.Fstatat(dirFD, name, &stat, unix.AT_SYMLINK_NOFOLLOW); err != nil {
+		if err == unix.ENOENT {
+			return false, nil
+		}
+		return false, fmt.Errorf("stat physical compatibility destination %q: %w", name, err)
+	}
+	if stat.Mode&unix.S_IFMT != unix.S_IFREG {
+		// refusal:by-design world-action: a non-regular destination must be replaced before a safe atomic refresh can continue.
+		return false, fmt.Errorf("compatibility destination %q must be a regular file", name)
+	}
+	return true, nil
 }
 
 func readPhysicalCompatibilityFile(dirFD int, name string) ([]byte, bool, error) {
