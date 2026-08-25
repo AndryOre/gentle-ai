@@ -36,9 +36,9 @@ Chain strategy: pending
 
 ## Phase 2: Mise-Managed Detector (Work Unit 2)
 
-- [ ] 2.1 RED: `internal/update/upgrade/mise_ownership_test.go` — table-driven (`t.Run(tt.name, ...)`, `t.TempDir()`, `t.Setenv`, no `t.Parallel()`), covering all 4 env-precedence rungs (`MISE_INSTALLS_DIR` > `MISE_DATA_DIR/installs` > `XDG_DATA_HOME/mise/installs` > `~/.local/share/mise/installs`), missing `HOME`, and a contained-vs-sibling-prefix path (`…/installsX/`). Must include these 3 threat-matrix cases verbatim: (a) empty/whitespace `MISE_INSTALLS_DIR` must NOT resolve a cwd-relative root; (b) a relative override is answered by `Contains`'s own `filepath.Abs`, never a string prefix; (c) a set-but-nonexistent root reports not-mise-managed, not an error.
-- [ ] 2.2 GREEN: create `internal/update/upgrade/mise.go` — unexported swappable `currentExecutableFn`/`userHomeDirFn` vars (default `os.Executable`/`os.UserHomeDir`), `miseInstallsRoot() string` (first **set**, non-blank env var wins), `runningBinaryIsMiseManaged() bool` via `pathidentity.Contains(miseInstallsRoot(), currentExecutableFn())`.
-- [ ] 2.3 Verify: `go test ./internal/update/upgrade/... -run Mise` green.
+- [x] 2.1 RED: `internal/update/upgrade/mise_ownership_test.go` — table-driven (`t.Run(tt.name, ...)`, `t.TempDir()`, `t.Setenv`, no `t.Parallel()`), covering all 4 env-precedence rungs (`MISE_INSTALLS_DIR` > `MISE_DATA_DIR/installs` > `XDG_DATA_HOME/mise/installs` > `~/.local/share/mise/installs`), missing `HOME`, and a contained-vs-sibling-prefix path (`…/installsX/`). Must include these 3 threat-matrix cases verbatim: (a) empty/whitespace `MISE_INSTALLS_DIR` must NOT resolve a cwd-relative root; (b) a relative override is answered by `Contains`'s own `filepath.Abs`, never a string prefix; (c) a set-but-nonexistent root reports not-mise-managed, not an error.
+- [x] 2.2 GREEN: create `internal/update/upgrade/mise.go` — unexported swappable `currentExecutableFn`/`userHomeDirFn` vars (default `os.Executable`/`os.UserHomeDir`), `miseInstallsRoot() string` (first **set**, non-blank env var wins), `runningBinaryIsMiseManaged() bool` via `pathidentity.Contains(miseInstallsRoot(), currentExecutableFn())`.
+- [x] 2.3 Verify: `go test ./internal/update/upgrade/... -run Mise` green.
 
 ## Phase 3: Executor Preflight Wiring (Work Unit 3)
 
