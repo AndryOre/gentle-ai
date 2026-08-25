@@ -876,9 +876,9 @@ test_oc_sdd_injection() {
         assert_file_exists "$commands_dir/sdd-init.md" "sdd-init command file"
         assert_file_contains "$commands_dir/sdd-init.md" "sdd" "sdd-init command has SDD content"
 
-        # SDD phases, judgment-day, and the shared contract (13 files)
+        # SDD phases and judgment-day (12 files). _shared is support-only.
         assert_dir_exists "$skill_dir" "OpenCode skill directory"
-        assert_file_count "$skill_dir" "SKILL.md" 13 "All 13 SDD and orchestration skill files"
+        assert_file_count "$skill_dir" "SKILL.md" 12 "All 12 SDD and orchestration skill files"
 
         # Validate skill file content
         assert_file_exists "$skill_dir/sdd-init/SKILL.md" "sdd-init SKILL.md"
