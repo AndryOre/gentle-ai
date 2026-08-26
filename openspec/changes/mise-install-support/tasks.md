@@ -64,3 +64,10 @@ Chain strategy: pending
 - [x] 6.1 `go test ./...` green.
 - [x] 6.2 `go run ./internal/gofmtcheck` clean.
 - [x] 6.3 Confirm every proposal.md Success Criteria checkbox is satisfied.
+
+## Phase 7: Process Compliance Remediation
+
+- [x] 7.1 Discovered late: `CONTRIBUTING.md`'s issue-first policy (`pr-check.yml`'s `check-issue-reference`/`check-issue-approved`), 400-line `check-pr-size` budget, and the required `type:*` label were not accounted for when PR1-4 were opened. All 4 workflow runs were still `action_required` (pending maintainer approval to run) when this was caught, so nothing had actually failed yet.
+- [x] 7.2 Opened a single tracking issue, [#3743](https://github.com/Gentleman-Programming/gentle-ai/issues/3743), covering the whole `mise-install-support` initiative (one issue for one feature split into chained work units, not one per PR).
+- [x] 7.3 Added `Closes #3743` plus a process note to all 4 PR bodies (#3734, #3735, #3737, #3742), disclosing each PR's real per-work-unit line count vs. the cumulative `main`-base diff CI sees, and explicitly requesting `size:exception` and the suggested `type:*` label on each — both require maintainer action, not self-serviceable as a non-collaborator.
+- [x] 7.4 Noted in PR3737's body that its `slop` label is stale (left over from a transient CodeRabbit flag that cleared on re-review after the node-version fix push) — not removable by a non-collaborator.
