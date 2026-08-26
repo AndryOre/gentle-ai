@@ -39,7 +39,7 @@ func unsetMiseEnv(t *testing.T, key string) {
 	})
 }
 
-// clearMisePrecedenceEnv unsets all four precedence inputs so each test case
+// clearMisePrecedenceEnv unsets all precedence inputs so each test case
 // starts from a known-empty environment, regardless of what the host machine
 // (or a prior subtest) happens to carry.
 func clearMisePrecedenceEnv(t *testing.T) {
@@ -47,6 +47,7 @@ func clearMisePrecedenceEnv(t *testing.T) {
 	unsetMiseEnv(t, "MISE_INSTALLS_DIR")
 	unsetMiseEnv(t, "MISE_DATA_DIR")
 	unsetMiseEnv(t, "XDG_DATA_HOME")
+	unsetMiseEnv(t, "LOCALAPPDATA")
 }
 
 // swapMiseUserHomeDirFn swaps userHomeDirFn for the duration of the test and
@@ -89,18 +90,22 @@ func mustWriteExecutable(t *testing.T, path string) {
 func TestMiseInstallsRoot(t *testing.T) {
 	for _, tt := range []struct {
 		name            string
+		goos            string
 		miseInstallsDir string
 		setInstallsDir  bool
 		miseDataDir     string
 		setDataDir      bool
 		xdgDataHome     string
 		setXDGDataHome  bool
+		localAppData    string
+		setLocalAppData bool
 		homeDir         string
 		homeErr         error
 		want            string
 	}{
 		{
 			name:            "MISE_INSTALLS_DIR wins over every other rung",
+			goos:            "linux",
 			miseInstallsDir: "/custom/installs",
 			setInstallsDir:  true,
 			miseDataDir:     "/mise/data",
@@ -112,6 +117,7 @@ func TestMiseInstallsRoot(t *testing.T) {
 		},
 		{
 			name:           "MISE_DATA_DIR/installs wins when MISE_INSTALLS_DIR is unset",
+			goos:           "linux",
 			miseDataDir:    "/mise/data",
 			setDataDir:     true,
 			xdgDataHome:    "/xdg/data",
@@ -121,6 +127,7 @@ func TestMiseInstallsRoot(t *testing.T) {
 		},
 		{
 			name:           "XDG_DATA_HOME/mise/installs wins when higher rungs are unset",
+			goos:           "linux",
 			xdgDataHome:    "/xdg/data",
 			setXDGDataHome: true,
 			homeDir:        "/home/user",
@@ -128,11 +135,13 @@ func TestMiseInstallsRoot(t *testing.T) {
 		},
 		{
 			name:    "falls through to ~/.local/share/mise/installs when nothing is set",
+			goos:    "linux",
 			homeDir: "/home/user",
 			want:    filepath.Join("/home/user", ".local", "share", "mise", "installs"),
 		},
 		{
 			name:    "missing HOME resolves an empty root",
+			goos:    "linux",
 			homeErr: errors.New("$HOME is not defined"),
 			want:    "",
 		},
@@ -141,6 +150,7 @@ func TestMiseInstallsRoot(t *testing.T) {
 		// through to the next rung.
 		{
 			name:            "empty MISE_INSTALLS_DIR must not resolve a cwd-relative root",
+			goos:            "linux",
 			miseInstallsDir: "",
 			setInstallsDir:  true,
 			homeDir:         "/home/user",
@@ -149,10 +159,61 @@ func TestMiseInstallsRoot(t *testing.T) {
 		// Threat-matrix case (a), whitespace variant.
 		{
 			name:            "whitespace-only MISE_INSTALLS_DIR must not resolve a cwd-relative root",
+			goos:            "linux",
 			miseInstallsDir: "   ",
 			setInstallsDir:  true,
 			homeDir:         "/home/user",
 			want:            filepath.Join("/home/user", ".local", "share", "mise", "installs"),
+		},
+		// Windows: XDG_DATA_HOME still wins over LOCALAPPDATA when set — this
+		// package doesn't special-case it, mirroring mise's own precedence.
+		{
+			name:            "windows: XDG_DATA_HOME still wins over LOCALAPPDATA",
+			goos:            "windows",
+			xdgDataHome:     `C:\xdg\data`,
+			setXDGDataHome:  true,
+			localAppData:    `C:\Users\user\AppData\Local`,
+			setLocalAppData: true,
+			homeDir:         `C:\Users\user`,
+			want:            filepath.Join(`C:\xdg\data`, "mise", "installs"),
+		},
+		// Windows: with every env-var rung unset, LOCALAPPDATA is the next
+		// resolution step — never the Unix ~/.local/share default.
+		{
+			name:            "windows: LOCALAPPDATA wins when no env-var rung above it is set",
+			goos:            "windows",
+			localAppData:    `C:\Users\user\AppData\Local`,
+			setLocalAppData: true,
+			homeDir:         `C:\Users\user`,
+			want:            filepath.Join(`C:\Users\user\AppData\Local`, "mise", "installs"),
+		},
+		// Windows: with nothing set at all, the platform default is
+		// %HOME%\AppData\Local\mise\installs, not ~/.local/share/mise/installs.
+		{
+			name:    "windows: falls through to HOME/AppData/Local/mise/installs when nothing is set",
+			goos:    "windows",
+			homeDir: `C:\Users\user`,
+			want:    filepath.Join(`C:\Users\user`, "AppData", "Local", "mise", "installs"),
+		},
+		// Windows threat-matrix parity: an empty/whitespace LOCALAPPDATA must
+		// not resolve either, same rule as every other rung.
+		{
+			name:            "windows: whitespace-only LOCALAPPDATA must not resolve a cwd-relative root",
+			goos:            "windows",
+			localAppData:    "   ",
+			setLocalAppData: true,
+			homeDir:         `C:\Users\user`,
+			want:            filepath.Join(`C:\Users\user`, "AppData", "Local", "mise", "installs"),
+		},
+		// Non-Windows GOOS must ignore LOCALAPPDATA entirely, even if it
+		// happens to be set (e.g. under Wine or a stray env var).
+		{
+			name:            "non-windows GOOS ignores LOCALAPPDATA even when set",
+			goos:            "darwin",
+			localAppData:    `C:\Users\user\AppData\Local`,
+			setLocalAppData: true,
+			homeDir:         "/Users/user",
+			want:            filepath.Join("/Users/user", ".local", "share", "mise", "installs"),
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -166,11 +227,14 @@ func TestMiseInstallsRoot(t *testing.T) {
 			if tt.setXDGDataHome {
 				setMiseEnv(t, "XDG_DATA_HOME", tt.xdgDataHome)
 			}
+			if tt.setLocalAppData {
+				setMiseEnv(t, "LOCALAPPDATA", tt.localAppData)
+			}
 			swapMiseUserHomeDirFn(t, tt.homeDir, tt.homeErr)
 
-			got := miseInstallsRoot()
+			got := miseInstallsRoot(tt.goos)
 			if got != tt.want {
-				t.Fatalf("miseInstallsRoot() = %q, want %q", got, tt.want)
+				t.Fatalf("miseInstallsRoot(%q) = %q, want %q", tt.goos, got, tt.want)
 			}
 
 			// Extra guard for the empty/whitespace cases: the naive bug this
