@@ -81,6 +81,8 @@ mise use -g github:Gentleman-Programming/gentle-ai@latest
 gentle-ai version
 ```
 
+`mise use -g` only pins the version — it doesn't put `gentle-ai` on `PATH` by itself. Run `gentle-ai version` from a shell where [mise is activated](https://mise.jdx.dev/getting-started.html) or its shims directory is on `PATH`; otherwise use `mise exec -- gentle-ai version`.
+
 ### Install the opt-in prerelease
 
 ```bash
