@@ -17,6 +17,8 @@
 # than silently validating whichever occurrence grep happens to see first.
 set -euo pipefail
 
+# die prints its arguments as a single `mise pins: <message>` line to stderr
+# and exits non-zero.
 die() {
   printf 'mise pins: %s\n' "$*" >&2
   exit 1
