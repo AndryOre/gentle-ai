@@ -56,8 +56,9 @@ extract_one() {
 go_mod_line="$(extract_one "go directive" "${go_mod}" '^go [0-9]')"
 go_mod_pin="$(awk '{print $2}' <<<"${go_mod_line}")"
 
-ci_node_line="$(extract_one "node-version pin" "${ci_yml}" '^[[:space:]]*node-version: "[0-9]')"
-ci_node_pin="$(sed -E 's/^[[:space:]]*node-version: "([^"]*)".*$/\1/' <<<"${ci_node_line}")"
+ci_node_line="$(extract_one "node-version key" "${ci_yml}" '^[[:space:]]*node-version:')"
+ci_node_pin="$(sed -nE 's/^[[:space:]]*node-version: "([0-9][^"]*)".*$/\1/p' <<<"${ci_node_line}")"
+[[ -n "${ci_node_pin}" ]] || die "unsupported node-version format in ${ci_yml}: ${ci_node_line}"
 
 mise_go_line="$(extract_one "go pin" "${mise_toml}" '^go = "')"
 mise_go_pin="$(sed -E 's/^go = "([^"]*)".*$/\1/' <<<"${mise_go_line}")"
