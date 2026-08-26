@@ -74,6 +74,13 @@ go install github.com/gentleman-programming/gentle-ai/v2/cmd/gentle-ai@latest
 gentle-ai version
 ```
 
+### Install via mise (macOS / Linux)
+
+```bash
+mise use -g github:Gentleman-Programming/gentle-ai@latest
+gentle-ai version
+```
+
 ### Install the opt-in prerelease
 
 ```bash

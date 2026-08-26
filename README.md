@@ -148,6 +148,12 @@ above. Releases before `v2.0.0` use the unsuffixed path.
 
 **Scoop (Windows)** — temporarily unavailable while official Windows binary distribution is held for public-trust Authenticode signing. Use the Windows `go install` command above.
 
+**mise (macOS / Linux)**
+
+```bash
+mise use -g github:Gentleman-Programming/gentle-ai@latest
+```
+
 By default, `gentle-ai install` writes agent-scoped files to each selected agent's global config directory. To keep the Gentleman stack isolated to one project, run:
 
 ```bash
