@@ -119,8 +119,8 @@ Additive only. `mise.toml` is presented as **one option among** Homebrew, `go in
 and Scoop inside README's existing alternatives `<details>` (127-190) — not the
 recommended or mandatory path. `docs/quickstart.md`, the `docs/platforms.md` matrix
 (7-13), and `CONTRIBUTING.md` Prerequisites (Node gap) follow the same framing. The
-command ships plain: `mise use -g github:Gentleman-Programming/gentle-ai@latest`,
-with no permanent `asset_pattern` hedge.
+command ships plain: `mise use -g gentle-ai@latest` (the registry short name, live
+as of mise `v2026.9.0`), with no permanent `asset_pattern` hedge.
 
 ## Decisions
 
@@ -190,7 +190,8 @@ re-baseline with `scripts/deadcode-ratchet.sh --update`.
 
 ## Open Questions
 
-- [ ] mise `github:` asset autodetection may prefer the decoy
+- [x] mise `github:` asset autodetection may prefer the decoy
       `gentle-ai-review-provider-contract-<semver>.tar.gz`. Resolved empirically by the
-      manual-verification task, not by design; if it fails, the doc command gains an
-      inline `asset_pattern` caveat.
+      manual-verification task: the real platform tarball was selected both via the
+      `github:` backend and via the registry short name (`aqua:` backend, verified
+      against mise `v2026.9.0`). No `asset_pattern` caveat needed.
