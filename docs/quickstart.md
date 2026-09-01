@@ -77,7 +77,7 @@ gentle-ai version
 ### Install via mise (macOS / Linux)
 
 ```bash
-mise use -g github:Gentleman-Programming/gentle-ai@latest
+mise use -g gentle-ai@latest
 gentle-ai version
 ```
 

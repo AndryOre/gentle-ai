@@ -151,7 +151,7 @@ above. Releases before `v2.0.0` use the unsuffixed path.
 **mise (macOS / Linux)**
 
 ```bash
-mise use -g github:Gentleman-Programming/gentle-ai@latest
+mise use -g gentle-ai@latest
 ```
 
 `mise use -g` only pins the version — it doesn't put `gentle-ai` on `PATH` by itself. Run the commands below from a shell where [mise is activated](https://mise.jdx.dev/getting-started.html) or its shims directory is on `PATH`; otherwise prefix each one with `mise exec --`.
