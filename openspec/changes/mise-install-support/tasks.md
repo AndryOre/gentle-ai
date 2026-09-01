@@ -9,11 +9,11 @@
 | Chained PRs recommended | Yes |
 | Suggested split | PR 1 -> PR 2 -> PR 3 -> (empirical gate) -> PR 4 |
 | Delivery strategy | ask-on-risk |
-| Chain strategy | pending (recommend stacked-to-main — proposal.md: each stream is independently revertible and streams can land in any order) |
+| Chain strategy | stacked-to-main (decided — proposal.md: each stream is independently revertible and streams can land in any order) |
 
-Decision needed before apply: Yes
+Decision needed before apply: No (resolved)
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: stacked-to-main
 400-line budget risk: High
 
 ### Suggested Work Units
