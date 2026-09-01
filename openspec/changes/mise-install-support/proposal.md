@@ -4,7 +4,7 @@
 
 mise has no supported path in this repo. Contributors reconstruct the toolchain by hand — Go from `go.mod:3`, Node from `ci.yml:368-371` — and `CONTRIBUTING.md:104-108` never mentions Node at all, even though CI needs Node 24 and `gentle-ai install` needs Node 18+ at runtime. Users who install through mise get worse: the self-updater replaces the binary in place, silently desyncing the version mise believes it manages.
 
-This change makes mise first-class inside this repo: one `mise install` provisions the toolchain, CI proves the pins never drift, and `gentle-ai upgrade` stops fighting mise. Sibling registry PRs (`aquaproj/aqua-registry`, `jdx/mise`) are separate streams — the command documented here must work **today**, before any registry accepts an entry.
+This change makes mise first-class inside this repo: one `mise install` provisions the toolchain, CI proves the pins never drift, and `gentle-ai upgrade` stops fighting mise. Sibling registry PRs (`aquaproj/aqua-registry#59466`, `jdx/mise#12444`) have both merged and shipped in mise `v2026.9.0`, so the registry short name resolves and is what's documented here.
 
 ## Scope
 
@@ -16,15 +16,13 @@ This change makes mise first-class inside this repo: one `mise install` provisio
 | 2 | Upgrade safety | new `internal/update/upgrade/mise.go` detects a mise-managed gentle-ai binary; a pre-backup preflight in `executor.go` skips **only** gentle-ai's own upgrade, with a manual hint pointing at `mise upgrade gentle-ai` |
 | 3 | Documentation | mise as a documented install method in `README.md` (alternatives `<details>`, 127-190), `docs/quickstart.md`, the `docs/platforms.md` matrix (7-13), and `CONTRIBUTING.md` Prerequisites — closing the Node gap through mise |
 
-Documented command (no registry short name exists yet): `mise use -g github:Gentleman-Programming/gentle-ai@latest`
+Documented command: `mise use -g gentle-ai@latest` (the registry short name; verified empirically against mise `v2026.9.0`).
 
 ### Out of Scope
 
 - Stale "v2.3.0 stable / v2.4.0-rc.1" text in `README.md` / `docs/quickstart.md` — tracked separately.
 - Any `CONTRIBUTING.md` change beyond the mise-linked Node prerequisite.
 - Windows mise support — no Windows release archives exist yet.
-- The mise short name `gentle-ai@latest` — follow-up PR once the registry entry merges.
-- The sibling `aquaproj/aqua-registry` and `jdx/mise` PRs.
 
 ## Resolved decisions (do not relitigate downstream)
 
@@ -73,7 +71,6 @@ Streams are independent and can land in any order; 1 and 3 are additive, 2 is th
 | mise `github:` asset autodetection picks the decoy `gentle-ai-review-provider-contract-<semver>.tar.gz` over a platform tarball | Low | Inferred from mise docs, **not empirically tested**. `sdd-tasks` MUST carry an explicit manual-verification task running the documented command end to end. If it fails, the doc command gains an inline `asset_pattern` caveat. |
 | `os.Executable()` (preflight) and `lookPathFn(r.Tool.Name)` (`download.go:108`, the write path) resolve different files when multiple `gentle-ai` binaries are on PATH | Low | Same file in the normal case; design notes the divergence and decides whether the hint should mention inspecting PATH duplicates. |
 | `mise.toml` pins drift from `go.mod` / `ci.yml` | Med | Exactly what stream 1's guard exists to prevent; it must sit in a required status check to matter. |
-| Doc command breaks once the registry short name lands | Low | `github:` form stays valid; the short name is an additive follow-up PR. |
 
 ## Rollback Plan
 
@@ -81,7 +78,7 @@ Each stream is an independently revertible commit. Stream 1: delete `mise.toml`,
 
 ## Dependencies
 
-- None blocking. The sibling `aquaproj/aqua-registry` and `jdx/mise` PRs are parallel and must not gate this change.
+- None blocking. The sibling `aquaproj/aqua-registry` and `jdx/mise` PRs have both merged and shipped, so the short name they added is now the documented command rather than a parallel stream.
 
 ## Success Criteria
 
@@ -89,5 +86,5 @@ Each stream is an independently revertible commit. Stream 1: delete `mise.toml`,
 - [ ] Editing `go.mod`'s Go directive or `ci.yml`'s Node pin without updating `mise.toml` fails the `unit-tests` job.
 - [ ] `gentle-ai upgrade` on a mise-managed binary reports gentle-ai as skipped with a `mise upgrade gentle-ai` hint, while every other requested tool still upgrades in the same invocation.
 - [ ] A non-mise install is unaffected: no skip, no behavior change.
-- [ ] The documented `mise use -g github:...` command is manually verified to install a working binary before merge.
+- [ ] The documented `mise use -g gentle-ai@latest` command is manually verified to install a working binary before merge.
 - [ ] `CONTRIBUTING.md` Prerequisites names Node and points at mise as the one-step path.
