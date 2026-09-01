@@ -58,7 +58,7 @@ README.md's existing "Alternative install and scope options" `<details>`
 block, `docs/quickstart.md`, and the `docs/platforms.md` matrix MUST each
 list mise as one option equal to Homebrew, `go install`, and Scoop — not as
 a preferred or recommended path — using the command
-`mise use -g github:Gentleman-Programming/gentle-ai@latest`.
+`mise use -g gentle-ai@latest` (the registry short name).
 
 #### Scenario: README lists mise alongside existing options
 
