@@ -3,12 +3,23 @@ schema: spec-driven
 
 context: |
   Tech stack: Go 1.25.10, Bubbletea TUI (charmbracelet/bubbletea v1.3.10), lipgloss v1.1.0
-  Architecture: cmd/ entrypoints, internal/ packages (agents, tui, model, pipeline, catalog, system, planner, verify, update, opencode, installcmd, cli, app, components, state, backup, assets, agentbuilder)
-  Feature branch: feat/claude-contextual-skill-loading — contextual skill loading from Claude Code
+  Module: github.com/gentleman-programming/gentle-ai/v2
+  Architecture: cmd/ entrypoints, internal/ (36 packages: agents, tui, model, pipeline, catalog,
+    system, planner, verify, update, opencode, installcmd, cli, app, components, state, backup,
+    assets, agentbuilder, reviewtransaction, sddstatus, skillregistry, storage, doctor, ...);
+    bench/ is a separate Go module for journey-based driven-mode tests; contracts/ holds provider
+    contract fixtures; e2e/ holds Docker-based end-to-end suites.
   Agents: multi-agent support (claude, opencode, cursor, codex, gemini, vscode, windsurf, antigravity)
   Skills catalog: internal/catalog/skills.go — known skill registry; project skills in skills/
-  Build: goreleaser (.goreleaser.yaml), CI: GitHub Actions (ci.yml, pr-check.yml, release.yml)
-  Style: gofmt (standard), go vet, no golangci-lint config found
+    and internal/assets/skills/ (installed into agent homes); index at AGENTS.md
+  Build: goreleaser (.goreleaser.yaml), CI: GitHub Actions (ci.yml, pr-check.yml, release.yml,
+    windows-full-suite.yml, promote-stable-rc.yml)
+  Style: gofmt via repo tool `go run ./internal/gofmtcheck` (matches CI's "Go Format" job),
+    go vet (run inside bench/ in CI; not run at repo root in ci.yml), no golangci-lint config found
+  Note: this repo is the gentle-ai CLI itself, including its own native SDD/RDD (receipt-driven
+    review) tooling (`internal/sddstatus`, `internal/reviewtransaction`) — several active
+    openspec/changes/ entries are evolving that review lifecycle (e.g. rdd-single-lifecycle-cutover,
+    review-lifecycle-hardening, complete-native-review-lifecycle).
 
 strict_tdd: true
 
@@ -27,21 +38,25 @@ rules:
     - Use hierarchical numbering (1.1, 1.2, etc.)
     - Keep tasks small enough to complete in one session
   apply:
-    - Load gentleman-bubbletea skill for TUI work (internal/tui/)
-    - Load gentleman-installer skill for installation steps
-    - Load gentleman-system skill for OS/system detection
-    - Load go-testing skill when writing tests
-    - Follow existing code patterns in internal/ packages
+    - Load go-testing skill (internal/assets/skills/go-testing/SKILL.md) when writing/reviewing
+      Go tests, including Bubbletea TUI state tests and golden files
+    - Load gentle-ai-bench skill (skills/gentle-ai-bench/SKILL.md) when touching bench/, journeys,
+      driven mode, or the journey corpus
+    - Load rdd-advisory-transport or rdd-defect-workflow skills when touching reviewer transport,
+      RDD receipts/lineage, or the native review lifecycle (internal/reviewtransaction, internal/sddstatus)
+    - Follow existing code patterns in internal/ packages; run `go run ./internal/gofmtcheck` before
+      finishing (CI's required Go Format check)
   verify:
     - Run: go test ./...
-    - Run: go vet ./...
+    - Run (bench module): cd bench && go vet ./... && go test ./...
+    - Run: go run ./internal/gofmtcheck
     - Compare implementation against every spec scenario
   archive:
     - Warn before merging destructive deltas (large removals)
 
 testing:
   strict_tdd: true
-  detected: "2026-05-05"
+  detected: "2026-08-25"
 
   runner:
     command: "go test ./..."
@@ -51,18 +66,27 @@ testing:
     unit:
       available: true
       tool: "go test"
-      note: "132 test files across internal/ packages"
+      note: "652 *_test.go files across internal/ (167 use the table-driven `t.Run(tt.name, ...)`
+        pattern documented by the project's own go-testing skill)"
     integration:
       available: true
       tool: "net/http/httptest (built-in)"
     e2e:
       available: true
-      tool: "Docker-based E2E (e2e/docker-test.sh)"
-      note: "Dockerfile.ubuntu, Dockerfile.fedora, Dockerfile.arch — triggered by RUN_FULL_E2E=1"
+      tool: "Docker-based E2E (e2e/ + ci.yml e2e-tests job)"
+      note: "Dockerfile.ubuntu, Dockerfile.fedora, Dockerfile.arch — full suite (RUN_FULL_E2E=1,
+        RUN_BACKUP_TESTS=1) runs in CI on every event; organic-runtime-e2e job also covers real
+        Claude Code/OpenCode/Codex install+detection journeys on Linux/Windows"
     tui:
       available: true
       tool: "bubbletea tea.KeyMsg simulation (no teatest — direct model.Update() testing)"
       note: "TUI tests use direct Bubbletea model updates, not teatest library"
+    journey:
+      available: true
+      tool: "bench/ (separate Go module) — `gentle-ai-bench` CLI runs scripted journeys/axes"
+      note: "CI's unit-tests job builds bench, runs `go vet`/`go test` inside bench/, then runs
+        curated journey/axis assertions against the built gentle-ai binary via jq; see
+        skills/gentle-ai-bench/SKILL.md before touching bench/"
 
   coverage:
     available: true
@@ -71,10 +95,12 @@ testing:
   quality:
     linter:
       available: false
-      note: "No golangci-lint config found; go vet is available"
+      note: "No golangci-lint config found; go vet is available (run inside bench/ in CI)"
     type_checker:
       available: true
-      command: "go vet ./..."
+      command: "go vet ./... (bench/ only in CI; not run at repo root in ci.yml)"
     formatter:
       available: true
-      command: "gofmt"
+      command: "go run ./internal/gofmtcheck"
+      note: "Repo-native formatting check used by CI's required 'Go Format' job; equivalent to
+        `gofmt -l` but fails the build on unformatted files"
